@@ -51,6 +51,7 @@ async def get_item_info(
         item_slug (str): Уникальный идентификатор товара (slug).
         proxy (str): Адрес прокси-сервера в формате "host:port".
         session (aiohttp.ClientSession): Сессия для выполнения HTTP-запросов.
+        semaphore (asyncio.Semaphore): Семафор для контроля нагрузки на сервер
         city_id (str): UUID города для запроса.
 
     Returns:
@@ -82,7 +83,7 @@ async def get_item_info(
         # Управляемый цикл переподключений на случай проблем с соединением
         tries: int = 0 # Колчичество попыток соединения (настраиваемый параметр)
         sleep_timer: int = 3 # Задержка между повторными запросами в секундах в случае ошибки (настраиваемый параметр)
-        request_delay: int = 0.2 # Задержка между запросами в секундах (настраиваемый параметр)
+        request_delay: int = 0.5 # Задержка между запросами в секундах (настраиваемый параметр)
         error_traceback: str = '' # Трассировка ошибки
         while True:
             if tries >= 3:
@@ -182,18 +183,12 @@ async def get_item_info(
     return result
 
 
-async def main():
+async def main() -> None:
     """Асинхронная точка входа для парсинга товаров с сайта alkoteka.com.
 
     Обрабатывает список категорий из файла input_urls.txt, получает данные о товарах
     через API сайта для указанного города (Краснодар) и сохраняет результаты в файл result.json.
     Использует асинхронные запросы через aiohttp с прокси из файла proxy_http_ip.txt.
-
-    Args:
-        None
-
-    Returns:
-        None
 
     Raises:
         requests.exceptions.RequestException: Если возникла ошибка при синхронном запросе к API категорий.
